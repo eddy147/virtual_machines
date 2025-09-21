@@ -1,34 +1,120 @@
-## file: ./configuration.nix
-{ pkgs, ... }:
+# Edit this configuration file to define what should be installed on
+# your system.  Help is available in the configuration.nix(5) man page
+# and in the NixOS manual (accessible by running ‘nixos-help’).
+
+{ config, pkgs, ... }:
+
 {
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
-  networking.firewall.allowedTCPPorts = [ 22 80 ];
-
-  users.users.root = {
-    initialPassword = "nixos";
-    openssh.authorizedKeys.keys = [
-      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDPhYNCzPRJw9Zg3ikF1DQGizschh50SA/R1u3SBJtC3lLw85MhS7vnZXDB1hDYmD6Na2T4MKMjORFFzF+zGxD1k17s0ctdCXeNB6b3CTrb3ekW5+hrEjz11rQMEVuxlzP8D0YyS72ETebtNKlpxN74u/JpHiSy8Z9Vzl2tSfgrPsaJ6KWOiPqlvpNf7d1ttWUyavg+G75vna1vVQtVjoBj8eErZJzF17x9p03A9XfbE2CuVFt4XrmGtWTM4nOPI0c9+CWUVs7p3rDInJY5WEvbbObeKGTb/tjg6xxLMITuc/W7jdbI1QhtwjYKJpgx38PbeUAFsjwnfbaNZ1/IR+/JnnYHPWzLFGXFy10/JUA1r0YqTi1XqDVdvPFAV1khr/3/3Vkf970wAjWU/e9djxqdYRAivbqe+hUwaRBvm5L97bPKs2ihfBVJIoQU3A4b1qf0zT9UFCMAIY+flfAz4SP67ckTakJZns2Kexy0ChIr/f6AJPi93uni3cNPxWmBs6M= eddy@ULU"
-      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDFeC4sVyzBgYdzfHylsqBc7d16iiNDOaIpb6m6mMP4DyOZNHDqsF+BdpK8AM7jWGpajRvy78vVhU1Ln2v2gVe8/9BwsNJhBP7m7/HxFf+fglMqBgJbZy/x6iUdwcZWwP+rzByalJA2FzXt+0JENuiZ6f/YYdnW9v2JzYn5Fmv3+KQ+BXJnsUXRf9t7qFT2EDsJ3WtGlOm3RPvDBlcZeQ+Fp6EEEPaw7DaRkuLXj6EhiGcBPaEXOfD6sNUBonoy+sqA5ZLzUzpf3iDf6aqo4gRH4XfANJNt2JrribVDiVvpkZldFjbePgDbLtqZP5jZbHaHWijEykyVBnWPH1lQv4bcCpp3VwRVhFiMK0QOI3Yf2zTXGgBfrml9bjJjFQgVDdeU4wrVPowUlNbtC4zHO5t9uorc+x9r+5DQ9LVhNVqvQT8PTRiJgneFJRqsZnRH0muFwRlu9niPg8S1LdLQTCp6uvB90Ao25n+uHMERYyuDu4WOwtiqY8CaXzSrHUO1Wcfr5UixuwYLxU3QzTb7fFph/V+AZ8AgjSBnG0FuOosdpgrC7LpBcu/AQwG2OGqJfUnI/7QPiq+UgMAcPlBdFv33YGavpNc6BQNxx9Ui9dfH8cnodW+yeOWW+HkJ7re/xfYtc7SOmIcs7/YfdlUeBowA19YYiWoPKY75+IV/j97dlQ== eddy.deboer@ulu.io"
+  imports =
+    [ # Include the results of the hardware scan.
+      ./hardware-configuration.nix
     ];
+
+  # Bootloader.
+  boot.loader.grub.enable = true;
+  boot.loader.grub.device = "/dev/vda";
+  boot.loader.grub.useOSProber = true;
+
+  networking.hostName = "nixos"; # Define your hostname.
+  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+
+  # Configure network proxy if necessary
+  # networking.proxy.default = "http://user:password@proxy:port/";
+  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+
+  # Enable networking
+  networking.networkmanager.enable = true;
+
+  # Set your time zone.
+  time.timeZone = "Europe/Amsterdam";
+
+  # Select internationalisation properties.
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "nl_NL.UTF-8";
+    LC_IDENTIFICATION = "nl_NL.UTF-8";
+    LC_MEASUREMENT = "nl_NL.UTF-8";
+    LC_MONETARY = "nl_NL.UTF-8";
+    LC_NAME = "nl_NL.UTF-8";
+    LC_NUMERIC = "nl_NL.UTF-8";
+    LC_PAPER = "nl_NL.UTF-8";
+    LC_TELEPHONE = "nl_NL.UTF-8";
+    LC_TIME = "nl_NL.UTF-8";
   };
 
-  services.openssh.enable = true;
-
-  services.nginx = {
-    enable = true;
-    virtualHosts."localhost" = {
-      default = true;
-      locations."/" = {
-        return = "200 'Hello World!'";
-      };
-    };
+  # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.users.eddy = {
+    isNormalUser = true;
+    description = "eddy";
+    extraGroups = [ "networkmanager" "wheel" ];
+    packages = with pkgs; [];
   };
 
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
+  # List packages installed in system profile. To search, run:
+  # $ nix search wget
   environment.systemPackages = with pkgs; [
-    vim
+  	wget
+	curl
+  	dmenu
+	st
+	xterm
   ];
 
-  system.stateVersion = "24.05";
+  # Some programs need SUID wrappers, can be configured further or are
+  # started in user sessions.
+  # programs.mtr.enable = true;
+  # programs.gnupg.agent = {
+  #   enable = true;
+  #   enableSSHSupport = true;
+  # };
+  programs.neovim = {
+	enable = true;
+	defaultEditor = true;
+  };
+
+  # List services that you want to enable:
+
+  services.xserver.resolutions = [
+  	{
+		x = 1920;
+		y = 1080;
+	}
+  ];
+
+  # Enable the OpenSSH daemon.
+  services.openssh.enable = true;
+
+  # enable X11 and dwm
+  services.xserver.enable	= true;
+
+  # Configure keymap in X11
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "";
+    options = "ctrl:nocaps";
+  };
+
+  services.xserver.windowManager.dwm.enable = true;
+
+  # optional login manager in lightdm
+  services.xserver.displayManager.lightdm.enable = true;
+
+  # Open ports in the firewall.
+  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  networking.firewall.enable = false;
+
+  # This value determines the NixOS release from which the default
+  # settings for stateful data, like file locations and database versions
+  # on your system were taken. It‘s perfectly fine and recommended to leave
+  # this value at the release version of the first install of this system.
+  # Before changing this value read the documentation for this option
+  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+  system.stateVersion = "25.05"; # Did you read the comment?
+
 }
