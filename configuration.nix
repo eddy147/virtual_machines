@@ -57,12 +57,47 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+  	asdf-vm
+  	firefox
   	wget
 	curl
   	dmenu
+	unzip
+	# terminals
 	st
-	xterm
+	alacritty
+	# copying
+	xclip
+	parcellite
+	# coding
+	git
+	vscodium
+	vimPlugins.LazyVim
+	docker
   ];
+
+  environment.variables.TERMINAL = "alacritty";
+
+  services.xserver.displayManager.sessionCommands = ''
+  	parcellite &
+  '';
+ 
+  # enable spice agent for clipboard 
+  services.spice-vdagentd.enable = true;
+
+  # set alacritty as defualt terminal
+  services.xserver.windowManager.dwm = {
+  	enable = true;
+	package = pkgs.dwm.overrideAttrs (old: {
+		postPatch = ''
+			substituteInPlace config.def.h \
+			--replace 'static const char *termcmd[]  = { "st", NULL };' \
+			          'static const char *termcmd[]  = { "alacritty", NULL };'
+		'';
+
+	});
+  };
+
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -98,8 +133,6 @@
     options = "ctrl:nocaps";
   };
 
-  services.xserver.windowManager.dwm.enable = true;
-
   # optional login manager in lightdm
   services.xserver.displayManager.lightdm.enable = true;
 
@@ -108,6 +141,18 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   networking.firewall.enable = false;
+
+  # docker
+  virtualisation.docker = {
+  	enable = true;
+	rootless = {
+		enable = true;
+		setSocketVariable = true;
+	};
+  };
+  # users.users.eddy.extraGroups = [ "docker" ];
+  users.extraGroups.docker.members = [ "eddy" ];
+
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
