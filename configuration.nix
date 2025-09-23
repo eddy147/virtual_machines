@@ -63,6 +63,7 @@
 	curl
   	dmenu
 	unzip
+	gnumake
 	# terminals
 	st
 	alacritty
